@@ -1,0 +1,92 @@
+# =========================
+# Root Git Ignore
+# =========================
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env
+.env.*.local
+.env.local
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+*.log.*
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Build outputs (frontend + backend)
+dist/
+build/
+out/
+
+# Editor / IDE folders
+.vscode/
+.idea/
+*.swp
+
+# =====================================
+# Frontend (client)
+# =====================================
+client/node_modules/
+client/dist/
+client/.vite/
+client/.DS_Store
+client/.env
+client/.env.local
+client/coverage/
+
+# =====================================
+# Backend (server)
+# =====================================
+server/node_modules/
+server/dist/
+server/.DS_Store
+server/.env
+server/.env.local
+server/coverage/
+
+# =====================================
+# Docker / Deployment
+# =====================================
+docker-compose.override.yml
+*.tar
+*.bak
+*.tmp
+
+# =====================================
+# Optional: OS & misc
+# =====================================
+*.log
+*.lock
+*.cache
+*.gz
+*.zip
+*.tgz
+*.tar.gz
+
+# =====================================
+# Testing / Coverage
+# =====================================
+coverage/
+*.lcov
+jest-test-results.json
+
+# =====================================
+# Temporary files
+# =====================================
+tmp/
+temp/
+*.tmp
