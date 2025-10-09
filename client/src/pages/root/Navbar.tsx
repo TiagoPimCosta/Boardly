@@ -139,20 +139,16 @@ export const Navbar = () => {
                 FAQ
               </Link>
               <div className="flex flex-col w-full px-4 gap-2">
-                <Button variant="default" className="shadow-md w-full">
-                  Get Started
-                </Button>
-                <Button variant="default" className="shadow-md w-full">
-                  Sign In
+                <Button variant="default" className="w-full">
+                  Log In
                 </Button>
               </div>
             </div>
           )}
 
           {/* CTA Button */}
-          <div className="hidden md:flex gap-2">
-            <Button variant="default">Get Started</Button>
-            <Button variant="default">Sign In</Button>
+          <div className="hidden md:flex">
+            <Button variant="default">Log In</Button>
           </div>
         </div>
       </div>

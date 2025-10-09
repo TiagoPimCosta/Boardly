@@ -21,9 +21,9 @@ export const Hero = () => {
 
           {/* Main heading */}
           <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent leading-tight">
-            Transparency for clients.
+            Transparency for clients
             <br />
-            Privacy for freelancers.
+            Privacy for freelancers
           </h1>
 
           {/* Subheading */}
