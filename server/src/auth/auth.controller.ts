@@ -2,6 +2,7 @@ import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { LocalGuard } from './guards/local.guard';
 import { JwtAuthGuard } from './guards/jwt.guard';
 import type { Request } from 'express';
+import { RefreshJwtAuthGuard } from './guards/refresh.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -11,9 +12,15 @@ export class AuthController {
     return req.user;
   }
 
-  @Get('status')
+  @Post('refreshAccessToken')
+  @UseGuards(RefreshJwtAuthGuard)
+  refreshAccessToken(@Req() req: Request) {
+    return req.user;
+  }
+
+  @Get('profile')
   @UseGuards(JwtAuthGuard)
-  status(@Req() req: Request) {
+  profile(@Req() req: Request) {
     return req.user;
   }
 }
