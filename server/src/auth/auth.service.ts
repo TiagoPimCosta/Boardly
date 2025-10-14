@@ -41,7 +41,6 @@ export class AuthService {
       const refreshToken = this.jwtService.sign(user, this.refreshTokenConfig);
 
       return {
-        id: user.id,
         accessToken,
         refreshToken,
       };
