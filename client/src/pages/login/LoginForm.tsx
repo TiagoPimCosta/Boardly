@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useLogin } from "@/services/auth/mutations";
 
 const loginSchema = z.object({
   username: z.string().min(2).max(50),
@@ -20,6 +21,7 @@ const loginSchema = z.object({
 type LoginSchema = z.infer<typeof loginSchema>;
 
 export const LoginForm = () => {
+  const loginUser = useLogin();
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -29,7 +31,9 @@ export const LoginForm = () => {
   });
 
   async function onSubmit(values: LoginSchema) {
+    const response = await loginUser.mutateAsync(values);
     console.log("Submit Data ", values);
+    console.log("Response ", response);
   }
 
   return (
