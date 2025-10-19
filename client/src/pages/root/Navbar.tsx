@@ -1,6 +1,7 @@
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link } from "react-scroll";
+import { Link as RouterLink } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 
 export const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -139,16 +140,17 @@ export const Navbar = () => {
                 FAQ
               </Link>
               <div className="flex flex-col w-full px-4 gap-2">
-                <Button variant="default" className="w-full">
-                  Log In
+                <Button variant="default" asChild>
+                  <RouterLink to="/login">Log In</RouterLink>
                 </Button>
               </div>
             </div>
           )}
 
-          {/* CTA Button */}
           <div className="hidden md:flex">
-            <Button variant="default">Log In</Button>
+            <Button variant="default" asChild>
+              <RouterLink to="/login">Log In</RouterLink>
+            </Button>
           </div>
         </div>
       </div>
