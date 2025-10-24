@@ -15,8 +15,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useLogin } from "@/services/auth/mutations";
 import { useState } from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { ShieldX } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { setAccessToken, setRefreshToken } from "@/lib/cookies";
 
 const loginSchema = z.object({
   username: z.string().min(2).max(50),
@@ -26,9 +28,11 @@ const loginSchema = z.object({
 type LoginSchema = z.infer<typeof loginSchema>;
 
 export const LoginForm = () => {
-  const [credentialError, setCredentialError] = useState(false);
+  const [credentialError, setCredentialError] = useState<string | undefined>(undefined);
 
+  const router = useRouter();
   const loginUser = useLogin();
+
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -40,10 +44,23 @@ export const LoginForm = () => {
   async function onSubmit(data: LoginSchema) {
     const { username, password } = data;
 
-    const response = await loginUser.mutateAsync({ username, password });
+    try {
+      setCredentialError(undefined);
 
-    console.log("Submit Data ", data);
-    console.log("Response ", response);
+      const response = await loginUser.mutateAsync({ username, password });
+
+      if (response?.accessToken) {
+        await setAccessToken(response.accessToken);
+        await setRefreshToken(response.refreshToken);
+
+        router.push("/");
+      } else {
+        throw new Error("Invalid response from server");
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      setCredentialError(errorMessage);
+    }
   }
 
   return (
@@ -51,11 +68,8 @@ export const LoginForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         {credentialError && (
           <Alert variant="destructive">
-            <Terminal />
-            <AlertTitle>Heads up!</AlertTitle>
-            <AlertDescription>
-              You can add components and dependencies to your app using the cli.
-            </AlertDescription>
+            <ShieldX />
+            <AlertTitle>{credentialError}</AlertTitle>
           </Alert>
         )}
         <FormField
@@ -84,7 +98,7 @@ export const LoginForm = () => {
             </FormItem>
           )}
         />
-        <Button className="mt-4 w-full" type="submit">
+        <Button className="mt-4 w-full" type="submit" disabled={loginUser.isPending}>
           Log in
         </Button>
       </form>
