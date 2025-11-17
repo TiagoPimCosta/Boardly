@@ -9,11 +9,13 @@ import { RefreshJwtStrategy } from './strategies/refresh.strategy';
 import { ConfigModule } from '@nestjs/config';
 import accessJwtConfig from './config/accessJwt.config';
 import refreshJwtConfig from './config/refreshJwt.config';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
     PassportModule,
     JwtModule,
+    UserModule,
     ConfigModule.forFeature(accessJwtConfig),
     ConfigModule.forFeature(refreshJwtConfig),
   ],
