@@ -4,62 +4,61 @@ import { JwtService } from '@nestjs/jwt';
 import refreshJwtConfig from './config/refreshJwt.config';
 import type { ConfigType } from '@nestjs/config';
 import accessJwtConfig from './config/accessJwt.config';
-
-const fakeUsers = [
-  {
-    id: 1,
-    username: 'Tiago',
-    password: 'Tiago',
-  },
-  {
-    id: 2,
-    username: 'Jack',
-    password: 'password',
-  },
-];
+import { UserService } from 'src/user/user.service';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
+    private userService: UserService,
     @Inject(refreshJwtConfig.KEY)
     private refreshTokenConfig: ConfigType<typeof refreshJwtConfig>,
     @Inject(accessJwtConfig.KEY)
     private accessTokenConfig: ConfigType<typeof accessJwtConfig>,
   ) {}
 
-  login(authPayloadDto: AuthPayloadDto) {
-    const { username, password } = authPayloadDto;
-    const findUser = fakeUsers.find((user) => user.username === username);
+  async login(authPayloadDto: AuthPayloadDto) {
+    const { email, password } = authPayloadDto;
+    const findUser = await this.userService.findOneByEmail(email);
+
     if (!findUser) return null;
 
     if (password === findUser.password) {
-      const { id, username } = findUser;
-      const user = { id, username };
-
-      const accessToken = this.jwtService.sign(user, this.accessTokenConfig);
-      const refreshToken = this.jwtService.sign(user, this.refreshTokenConfig);
-
-      return {
-        accessToken,
-        refreshToken,
-      };
+      return this.generateTokens(findUser);
     }
   }
 
-  refreshToken(refreshPayloadDto: RefreshPayloadDto) {
+  async refreshToken(refreshPayloadDto: RefreshPayloadDto) {
     const { id } = refreshPayloadDto;
-    const findUser = fakeUsers.find((user) => user.id === id);
+    const findUser = await this.userService.findOneById(id);
     if (!findUser) return null;
 
-    const { username } = findUser;
-    const user = { id, username };
-
-    const accessToken = this.jwtService.sign(user, this.accessTokenConfig);
-    const refreshToken = this.jwtService.sign(user, this.refreshTokenConfig);
+    const tokens = this.generateTokens(findUser);
 
     return {
+      id: findUser.id,
+      ...tokens,
+    };
+  }
+
+  private generateTokens(user: User) {
+    const tokenPayload = {
       id: user.id,
+      name: user.name,
+      email: user.email,
+    };
+
+    const accessToken = this.jwtService.sign(
+      tokenPayload,
+      this.accessTokenConfig,
+    );
+    const refreshToken = this.jwtService.sign(
+      tokenPayload,
+      this.refreshTokenConfig,
+    );
+
+    return {
       accessToken,
       refreshToken,
     };
