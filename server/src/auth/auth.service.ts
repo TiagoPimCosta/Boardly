@@ -6,6 +6,7 @@ import type { ConfigType } from '@nestjs/config';
 import accessJwtConfig from './config/accessJwt.config';
 import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -24,7 +25,8 @@ export class AuthService {
 
     if (!findUser) return null;
 
-    if (password === findUser.password) {
+    const isPasswordValid = await bcrypt.compare(password, findUser.password);
+    if (isPasswordValid) {
       return this.generateTokens(findUser);
     }
   }
