@@ -1,14 +1,22 @@
-import { PricingPlan } from "@/services/stripe/queries";
+import {
+  GetStripeProductsResponse,
+  PricingPlan,
+} from "@/services/stripe/queries";
 import { Card } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Check, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
+import { Skeleton } from "./ui/skeleton";
 
 interface PricingCardsProps {
-  plans: Record<string, PricingPlan[]>;
+  plans?: GetStripeProductsResponse;
 }
+
 export default function PricingCards(props: PricingCardsProps) {
   const { plans } = props;
+
+  // TODO: Create a skeleton for the pricing cards
+  if (!plans) return <Skeleton className="h-12 w-12 rounded-full" />;
 
   return (
     <Tabs
@@ -54,7 +62,7 @@ export default function PricingCards(props: PricingCardsProps) {
                     <div className="text-center mb-6">
                       <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
                       <p className="text-muted-foreground text-sm mb-4">
-                        {plan.description} Description
+                        {plan.description}
                       </p>
                       <div className="mb-2">
                         <span className="text-5xl font-bold">{formatted}</span>

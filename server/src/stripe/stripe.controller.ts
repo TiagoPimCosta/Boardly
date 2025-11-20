@@ -7,6 +7,6 @@ export class StripeController {
 
   @Get('pricing')
   async getPricingPlans(): Promise<any> {
-    return await this.stripeService.getPricingPlansWithPricesAndLinks();
+    return await this.stripeService.getPricingPlans();
   }
 }

@@ -1,79 +1,11 @@
-import PricingCards from "@/components/pricingCards";
+"use client";
 
-const plans = {
-  month: [
-    {
-      id: "prod_TVnXiVkOSPfyPP",
-      name: "Starter",
-      active: true,
-      prices: {
-        currency: "eur",
-        amount: 1900,
-      },
-      payment_link: "https://google.com",
-      features: ["feature_1", "feature_2", "feature_3"],
-    },
-    {
-      id: "prod_TVoNfskzEvI9SH",
-      name: "Pro",
-      active: true,
-      prices: {
-        currency: "eur",
-        amount: 4900,
-      },
-      payment_link: "https://google.com",
-      features: ["feature_4", "feature_5", "feature_6"],
-    },
-    {
-      id: "prod_TVoNvtUNvmygGf",
-      name: "Enterprise",
-      active: true,
-      prices: {
-        currency: "eur",
-        amount: 9900,
-      },
-      payment_link: "https://google.com",
-      features: ["feature_7", "feature_8", "feature_9"],
-    },
-  ],
-  year: [
-    {
-      id: "prod_TVnXiVkOSPfyPP",
-      name: "Starter",
-      active: true,
-      prices: {
-        currency: "eur",
-        amount: 19000,
-      },
-      payment_link: "https://google.com",
-      features: ["feature_10", "feature_11", "feature_12"],
-    },
-    {
-      id: "prod_TVoNfskzEvI9SH",
-      name: "Pro",
-      active: true,
-      prices: {
-        currency: "eur",
-        amount: 47000,
-      },
-      payment_link: "https://google.com",
-      features: ["feature_13", "feature_14", "feature_15"],
-    },
-    {
-      id: "prod_TVoNvtUNvmygGf",
-      name: "Enterprise",
-      active: true,
-      prices: {
-        currency: "eur",
-        amount: 95000,
-      },
-      payment_link: "https://google.com",
-      features: ["feature_16", "feature_17", "feature_18"],
-    },
-  ],
-};
+import PricingCards from "@/components/pricingCards";
+import { useGetPricingPlans } from "@/services/stripe/queries";
 
 export const Pricing = () => {
+  const { data } = useGetPricingPlans();
+
   return (
     <section id="pricing" className="py-24 bg-background">
       <div className="container mx-auto px-4">
@@ -87,7 +19,7 @@ export const Pricing = () => {
           </p>
         </div>
 
-        <PricingCards plans={plans} />
+        <PricingCards plans={data} />
       </div>
     </section>
   );
