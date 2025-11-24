@@ -5,6 +5,7 @@ interface StripeProduct {
   name: string;
   object: string;
   active: boolean;
+  metadata?: Record<string, string>;
 }
 
 interface StripePrice {
@@ -26,6 +27,7 @@ interface StripeLineItem {
 
 interface StripePaymentLink {
   url: string;
+  active: boolean;
   line_items?: {
     data: StripeLineItem[];
   };
@@ -51,6 +53,7 @@ interface PricingPlan {
     amount: number;
   };
   payment_link: string | null;
+  features: string[];
 }
 
 interface PricingPlansByInterval {
@@ -81,9 +84,62 @@ export class StripeService {
     return response.json() as Promise<T>;
   }
 
+  /**
+   * Extracts features from Stripe product metadata.
+   * Supports multiple formats:
+   * - JSON array string: metadata.features = '["Feature 1", "Feature 2"]'
+   * - Comma-separated: metadata.features = "Feature 1,Feature 2"
+   * - Individual keys: metadata.feature_1, metadata.feature_2, etc.
+   */
+  private extractFeatures(product: StripeProduct): string[] {
+    if (!product.metadata) {
+      return [];
+    }
+
+    const metadata = product.metadata;
+
+    // Try JSON array format first
+    if (metadata.features) {
+      try {
+        const parsed: unknown = JSON.parse(metadata.features);
+        if (
+          Array.isArray(parsed) &&
+          parsed.every((item) => typeof item === 'string')
+        ) {
+          return parsed;
+        }
+      } catch {
+        // If JSON parsing fails, try comma-separated format
+        if (metadata.features.includes(',')) {
+          return metadata.features.split(',').map((f) => f.trim());
+        }
+        // Single feature
+        return [metadata.features];
+      }
+    }
+
+    // Try comma-separated format
+    if (metadata.features && metadata.features.includes(',')) {
+      return metadata.features.split(',').map((f) => f.trim());
+    }
+
+    // Try individual feature keys (feature_1, feature_2, etc.)
+    const featureKeys = Object.keys(metadata)
+      .filter((key) => key.startsWith('feature_'))
+      .sort()
+      .map((key) => metadata[key])
+      .filter((value) => value && value.trim() !== '');
+
+    if (featureKeys.length > 0) {
+      return featureKeys;
+    }
+
+    return [];
+  }
+
   async getPricingPlansWithPricesAndLinks(): Promise<PricingPlansByInterval> {
-    // 1. Fetch products and prices concurrently
-    const [productsData, pricesData] = await Promise.all([
+    // 1. Fetch products, prices, and payment links concurrently
+    const [productsData, pricesData, paymentLinksData] = await Promise.all([
       this.stripeFetch<StripeListResponse<StripeProduct>>(
         'products',
         new URLSearchParams({ limit: '100' }),
@@ -92,42 +148,39 @@ export class StripeService {
         'prices',
         new URLSearchParams({ limit: '100' }),
       ),
+      this.stripeFetch<StripeListResponse<StripePaymentLink>>(
+        'payment_links',
+        new URLSearchParams({
+          limit: '100',
+          'expand[]': 'data.line_items.data.price',
+        }),
+      ),
     ]);
 
-    // 2. For each price, fetch the first payment link containing that price
-    const pricesWithLinks = await Promise.all(
-      pricesData.data.map(
-        async (price: StripePrice): Promise<PriceWithLink> => {
-          // fetch payment links filtering by price
-          const paymentLinksData = await this.stripeFetch<
-            StripeListResponse<StripePaymentLink>
-          >(
-            'payment_links',
-            new URLSearchParams({
-              limit: '1',
-              'expand[]': 'data.line_items.data.price',
-            }),
-          );
+    // 2. Build a map of price ID -> payment link URL (only for active payment links)
+    const priceToPaymentLink = new Map<string, string>();
+    for (const link of paymentLinksData.data) {
+      // Only process active payment links
+      if (!link.active) continue;
 
-          // find the first link that includes this price
-          let paymentLink: string | null = null;
-          for (const link of paymentLinksData.data) {
-            if (
-              link.line_items?.data?.some(
-                (item: StripeLineItem) => item.price?.id === price.id,
-              )
-            ) {
-              paymentLink = link.url;
-              break;
+      if (link.line_items?.data) {
+        for (const item of link.line_items.data) {
+          if (item.price?.id) {
+            // Use the first active payment link found for each price
+            if (!priceToPaymentLink.has(item.price.id)) {
+              priceToPaymentLink.set(item.price.id, link.url);
             }
           }
+        }
+      }
+    }
 
-          return {
-            ...price,
-            payment_link: paymentLink,
-          };
-        },
-      ),
+    // 3. Map prices with their payment links
+    const pricesWithLinks: PriceWithLink[] = pricesData.data.map(
+      (price: StripePrice) => ({
+        ...price,
+        payment_link: priceToPaymentLink.get(price.id) || null,
+      }),
     );
 
     // 3. Group prices by product and interval
@@ -151,41 +204,51 @@ export class StripeService {
 
     // 4. Build result grouped by interval
     const result: PricingPlansByInterval = {
-      month: [],
-      year: [],
+      month: productsData.data
+        .map((product) => {
+          const productPrices = pricesByProductAndInterval[product.id] || {};
+          const features = this.extractFeatures(product);
+
+          if (!productPrices.month) return null;
+
+          return {
+            id: product.id,
+            name: product.name,
+            active: product.active,
+            prices: {
+              currency: productPrices.month.currency,
+              amount: productPrices.month.unit_amount,
+            },
+            payment_link: productPrices.month.payment_link,
+            features,
+          };
+        })
+        .filter((plan): plan is PricingPlan => plan !== null),
+      year: productsData.data
+        .map((product) => {
+          const productPrices = pricesByProductAndInterval[product.id] || {};
+          const features = this.extractFeatures(product);
+
+          if (!productPrices.year) return null;
+
+          return {
+            id: product.id,
+            name: product.name,
+            active: product.active,
+            prices: {
+              currency: productPrices.year.currency,
+              amount: productPrices.year.unit_amount,
+            },
+            payment_link: productPrices.year.payment_link,
+            features,
+          };
+        })
+        .filter((plan): plan is PricingPlan => plan !== null),
     };
 
-    for (const product of productsData.data) {
-      const productPrices = pricesByProductAndInterval[product.id] || {};
-
-      // Add monthly plan if exists
-      if (productPrices.month) {
-        result.month.push({
-          id: product.id,
-          name: product.name,
-          active: product.active,
-          prices: {
-            currency: productPrices.month.currency,
-            amount: productPrices.month.unit_amount,
-          },
-          payment_link: productPrices.month.payment_link,
-        });
-      }
-
-      // Add yearly plan if exists
-      if (productPrices.year) {
-        result.year.push({
-          id: product.id,
-          name: product.name,
-          active: product.active,
-          prices: {
-            currency: productPrices.year.currency,
-            amount: productPrices.year.unit_amount,
-          },
-          payment_link: productPrices.year.payment_link,
-        });
-      }
-    }
+    // Sort the month and year arrays by amount in ascending order
+    result.month.sort((a, b) => a.prices.amount - b.prices.amount);
+    result.year.sort((a, b) => a.prices.amount - b.prices.amount);
 
     return result;
   }
