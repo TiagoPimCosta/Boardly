@@ -5,6 +5,7 @@ interface StripeProduct {
   name: string;
   object: string;
   active: boolean;
+  description?: string | null;
   metadata?: Record<string, string>;
 }
 
@@ -40,6 +41,21 @@ interface StripeListResponse<T> {
   url: string;
 }
 
+interface StripeEntitlementFeature {
+  id: string;
+  object: string;
+  name: string;
+  lookup_key: string;
+  metadata?: Record<string, string>;
+}
+
+interface StripeProductFeature {
+  id: string;
+  object: string;
+  livemode: boolean;
+  entitlement_feature: StripeEntitlementFeature;
+}
+
 interface PriceWithLink extends StripePrice {
   payment_link: string | null;
 }
@@ -48,6 +64,7 @@ interface PricingPlan {
   id: string;
   name: string;
   active: boolean;
+  description: string | null;
   prices: {
     currency: string;
     amount: number;
@@ -77,67 +94,35 @@ export class StripeService {
     });
 
     if (!response.ok) {
-      console.error(await response.text());
       throw new InternalServerErrorException(`Failed to fetch Stripe ${path}`);
     }
 
-    return response.json() as Promise<T>;
+    const data = (await response.json()) as T;
+    return data;
   }
 
   /**
-   * Extracts features from Stripe product metadata.
-   * Supports multiple formats:
-   * - JSON array string: metadata.features = '["Feature 1", "Feature 2"]'
-   * - Comma-separated: metadata.features = "Feature 1,Feature 2"
-   * - Individual keys: metadata.feature_1, metadata.feature_2, etc.
+   * Fetches features for a product using the Stripe Product Features API.
+   * Uses GET /v1/products/:id/features endpoint.
    */
-  private extractFeatures(product: StripeProduct): string[] {
-    if (!product.metadata) {
+  private async fetchProductFeatures(productId: string): Promise<string[]> {
+    try {
+      const featuresData = await this.stripeFetch<
+        StripeListResponse<StripeProductFeature>
+      >(`products/${productId}/features`);
+
+      // Extract feature names from the entitlement_feature objects
+      return featuresData.data.map(
+        (productFeature) => productFeature.entitlement_feature.name,
+      );
+    } catch {
+      // If the API call fails (e.g., product has no features), return empty array
+      // This is expected for products without features, so we don't log it as an error
       return [];
     }
-
-    const metadata = product.metadata;
-
-    // Try JSON array format first
-    if (metadata.features) {
-      try {
-        const parsed: unknown = JSON.parse(metadata.features);
-        if (
-          Array.isArray(parsed) &&
-          parsed.every((item) => typeof item === 'string')
-        ) {
-          return parsed;
-        }
-      } catch {
-        // If JSON parsing fails, try comma-separated format
-        if (metadata.features.includes(',')) {
-          return metadata.features.split(',').map((f) => f.trim());
-        }
-        // Single feature
-        return [metadata.features];
-      }
-    }
-
-    // Try comma-separated format
-    if (metadata.features && metadata.features.includes(',')) {
-      return metadata.features.split(',').map((f) => f.trim());
-    }
-
-    // Try individual feature keys (feature_1, feature_2, etc.)
-    const featureKeys = Object.keys(metadata)
-      .filter((key) => key.startsWith('feature_'))
-      .sort()
-      .map((key) => metadata[key])
-      .filter((value) => value && value.trim() !== '');
-
-    if (featureKeys.length > 0) {
-      return featureKeys;
-    }
-
-    return [];
   }
 
-  async getPricingPlansWithPricesAndLinks(): Promise<PricingPlansByInterval> {
+  async getPricingPlans(): Promise<PricingPlansByInterval> {
     // 1. Fetch products, prices, and payment links concurrently
     const [productsData, pricesData, paymentLinksData] = await Promise.all([
       this.stripeFetch<StripeListResponse<StripeProduct>>(
@@ -157,7 +142,15 @@ export class StripeService {
       ),
     ]);
 
-    // 2. Build a map of price ID -> payment link URL (only for active payment links)
+    // 2. Fetch features for all products in parallel
+    const productFeaturesMap = new Map<string, string[]>();
+    const featurePromises = productsData.data.map(async (product) => {
+      const features = await this.fetchProductFeatures(product.id);
+      productFeaturesMap.set(product.id, features);
+    });
+    await Promise.all(featurePromises);
+
+    // 3. Build a map of price ID -> payment link URL (only for active payment links)
     const priceToPaymentLink = new Map<string, string>();
     for (const link of paymentLinksData.data) {
       // Only process active payment links
@@ -175,7 +168,7 @@ export class StripeService {
       }
     }
 
-    // 3. Map prices with their payment links
+    // 4. Map prices with their payment links
     const pricesWithLinks: PriceWithLink[] = pricesData.data.map(
       (price: StripePrice) => ({
         ...price,
@@ -183,7 +176,7 @@ export class StripeService {
       }),
     );
 
-    // 3. Group prices by product and interval
+    // 5. Group prices by product and interval
     const pricesByProductAndInterval: Record<
       string,
       Record<string, PriceWithLink>
@@ -202,12 +195,12 @@ export class StripeService {
       }
     }
 
-    // 4. Build result grouped by interval
+    // 6. Build result grouped by interval
     const result: PricingPlansByInterval = {
       month: productsData.data
         .map((product) => {
           const productPrices = pricesByProductAndInterval[product.id] || {};
-          const features = this.extractFeatures(product);
+          const features = productFeaturesMap.get(product.id) || [];
 
           if (!productPrices.month) return null;
 
@@ -215,6 +208,7 @@ export class StripeService {
             id: product.id,
             name: product.name,
             active: product.active,
+            description: product.description || null,
             prices: {
               currency: productPrices.month.currency,
               amount: productPrices.month.unit_amount,
@@ -227,7 +221,7 @@ export class StripeService {
       year: productsData.data
         .map((product) => {
           const productPrices = pricesByProductAndInterval[product.id] || {};
-          const features = this.extractFeatures(product);
+          const features = productFeaturesMap.get(product.id) || [];
 
           if (!productPrices.year) return null;
 
@@ -235,6 +229,7 @@ export class StripeService {
             id: product.id,
             name: product.name,
             active: product.active,
+            description: product.description || null,
             prices: {
               currency: productPrices.year.currency,
               amount: productPrices.year.unit_amount,
