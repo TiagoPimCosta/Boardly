@@ -51,7 +51,7 @@ export default function PricingGrid(props: PricingCardsProps) {
                     amount={formattedAmount}
                     payment_link={plan.payment_link ?? undefined}
                     features={plan.features}
-                    isActive={active}
+                    isPopular={active}
                   />
                 );
               })

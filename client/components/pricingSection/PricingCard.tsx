@@ -8,7 +8,7 @@ interface PricingCardProps {
   amount: string;
   payment_link?: string;
   features: string[];
-  isActive?: boolean;
+  isPopular?: boolean;
 }
 
 const PricingCard = (props: PricingCardProps) => {
@@ -18,18 +18,18 @@ const PricingCard = (props: PricingCardProps) => {
     amount,
     payment_link,
     features,
-    isActive = false,
+    isPopular = false,
   } = props;
 
   return (
     <Card
       className={`relative p-8 min-w-[300px] hover:shadow-xl transition-all duration-300 ${
-        isActive
+        isPopular
           ? "border-primary shadow-lg scale-105 bg-linear-to-b from-card to-primary/5"
           : "border-border/50 bg-card/50"
       }`}
     >
-      {isActive && (
+      {isPopular && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-linear-to-r from-primary to-primary-glow rounded-full text-xs font-semibold text-primary-foreground flex items-center gap-1 shadow-lg">
           <Sparkles className="w-3 h-3" />
           Most Popular
@@ -46,7 +46,7 @@ const PricingCard = (props: PricingCardProps) => {
       </div>
 
       <Button
-        variant={isActive ? "hero" : "outline"}
+        variant={isPopular ? "hero" : "outline"}
         className="w-full mb-6"
         asChild
       >
