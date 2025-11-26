@@ -1,6 +1,6 @@
 "use client";
 
-import PricingCards from "@/components/pricingCards";
+import PricingGrid from "@/components/pricingSection/PricingGrid";
 import { useGetPricingPlans } from "@/services/stripe/queries";
 
 export const Pricing = () => {
@@ -19,7 +19,7 @@ export const Pricing = () => {
           </p>
         </div>
 
-        <PricingCards plans={data} />
+        <PricingGrid plans={data} />
       </div>
     </section>
   );
