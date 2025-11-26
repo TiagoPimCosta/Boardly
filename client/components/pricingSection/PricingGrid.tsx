@@ -35,12 +35,18 @@ export default function PricingGrid(props: PricingCardsProps) {
               <div>No plans available.</div>
             ) : (
               plans[key].map((plan: PricingPlan, index: number) => {
-                const formattedAmount = new Intl.NumberFormat("pt-PT", {
+                // Format as currency but remove any space between amount and euro sign (for pt-PT, Euro)
+                let formattedAmount = new Intl.NumberFormat("pt-PT", {
                   style: "currency",
                   currency: plan.prices.currency.toUpperCase(),
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0,
                 }).format(plan.prices.amount / 100);
+
+                formattedAmount = formattedAmount.replace(
+                  /\s?([^\d.,\s]+)/g,
+                  "$1"
+                );
                 const active = index % 2 !== 0;
 
                 return (
