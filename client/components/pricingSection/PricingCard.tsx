@@ -41,7 +41,7 @@ const PricingCard = (props: PricingCardProps) => {
         <p className="text-muted-foreground text-sm mb-4">{description}</p>
         <div className="mb-2">
           <span className="text-5xl font-bold">{amount}</span>
-          <span className="text-muted-foreground">/month</span>
+          <span className="text-muted-foreground">/ month</span>
         </div>
       </div>
 

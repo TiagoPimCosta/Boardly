@@ -35,7 +35,7 @@ export default function PricingGrid(props: PricingCardsProps) {
               <div>No plans available.</div>
             ) : (
               plans[key].map((plan: PricingPlan, index: number) => {
-                const formattedAmount = new Intl.NumberFormat("en-US", {
+                const formattedAmount = new Intl.NumberFormat("pt-PT", {
                   style: "currency",
                   currency: plan.prices.currency.toUpperCase(),
                   minimumFractionDigits: 0,
