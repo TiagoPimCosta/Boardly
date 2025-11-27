@@ -6,6 +6,7 @@ interface PricingCardProps {
   name: string;
   description?: string;
   amount: string;
+  period: string;
   payment_link?: string;
   features: string[];
   isPopular?: boolean;
@@ -16,6 +17,7 @@ const PricingCard = (props: PricingCardProps) => {
     name,
     description,
     amount,
+    period,
     payment_link,
     features,
     isPopular = false,
@@ -23,7 +25,7 @@ const PricingCard = (props: PricingCardProps) => {
 
   return (
     <Card
-      className={`relative p-8 min-w-[300px] hover:shadow-xl transition-all duration-300 ${
+      className={`relative p-8 min-w-fit lg:min-w-[300px] hover:shadow-xl transition-all duration-300 ${
         isPopular
           ? "border-primary shadow-lg scale-105 bg-linear-to-b from-card to-primary/5"
           : "border-border/50 bg-card/50"
@@ -41,7 +43,7 @@ const PricingCard = (props: PricingCardProps) => {
         <p className="text-muted-foreground text-sm mb-4">{description}</p>
         <div className="mb-2">
           <span className="text-5xl font-bold">{amount}</span>
-          <span className="text-muted-foreground">/ month</span>
+          <span className="text-muted-foreground">/ {period}</span>
         </div>
       </div>
 

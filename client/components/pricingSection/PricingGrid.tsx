@@ -55,6 +55,7 @@ export default function PricingGrid(props: PricingCardsProps) {
                     name={plan.name}
                     description={plan.description ?? undefined}
                     amount={formattedAmount}
+                    period={key}
                     payment_link={plan.payment_link ?? undefined}
                     features={plan.features}
                     isPopular={active}
