@@ -7,6 +7,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { StripeModule } from './stripe/stripe.module';
+import { UserRolesModule } from './user_roles/user_roles.module';
+import { UserRolesModule } from './user_roles/user_roles.module';
 
 @Module({
   imports: [
@@ -27,6 +29,7 @@ import { StripeModule } from './stripe/stripe.module';
     AuthModule,
     UserModule,
     StripeModule,
+    UserRolesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
