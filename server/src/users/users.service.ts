@@ -7,9 +7,9 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(User) private readonly usersRepository: Repository<User>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -17,23 +17,23 @@ export class UserService {
     user.name = createUserDto.name;
     user.email = createUserDto.email;
     user.password = await bcrypt.hash(createUserDto.password, 10);
-    return this.userRepository.save(user);
+    return this.usersRepository.save(user);
   }
 
   findAll(): Promise<User[]> {
-    return this.userRepository.find();
+    return this.usersRepository.find();
   }
 
   findOneById(id: number): Promise<User | null> {
-    return this.userRepository.findOneBy({ id });
+    return this.usersRepository.findOneBy({ id });
   }
 
   findOneByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOneBy({ email });
+    return this.usersRepository.findOneBy({ email });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.userRepository.findOneBy({ id });
+    const user = await this.usersRepository.findOneBy({ id });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -46,11 +46,11 @@ export class UserService {
     if (updateUserDto.password !== undefined) {
       user.password = await bcrypt.hash(updateUserDto.password, 10);
     }
-    return this.userRepository.save(user);
+    return this.usersRepository.save(user);
   }
 
   async remove(id: number): Promise<{ affected?: number }> {
-    const result = await this.userRepository.delete(id);
+    const result = await this.usersRepository.delete(id);
     return { affected: result.affected ?? undefined };
   }
 }

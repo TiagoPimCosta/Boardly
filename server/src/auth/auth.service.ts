@@ -4,8 +4,8 @@ import { JwtService } from '@nestjs/jwt';
 import refreshJwtConfig from './config/refreshJwt.config';
 import type { ConfigType } from '@nestjs/config';
 import accessJwtConfig from './config/accessJwt.config';
-import { UserService } from 'src/user/user.service';
-import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/users/users.service';
+import { User } from 'src/users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()

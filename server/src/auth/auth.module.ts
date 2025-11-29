@@ -9,7 +9,7 @@ import { RefreshJwtStrategy } from './strategies/refresh.strategy';
 import { ConfigModule } from '@nestjs/config';
 import accessJwtConfig from './config/accessJwt.config';
 import refreshJwtConfig from './config/refreshJwt.config';
-import { UserModule } from 'src/user/user.module';
+import { UserModule } from 'src/users/users.module';
 
 @Module({
   imports: [
