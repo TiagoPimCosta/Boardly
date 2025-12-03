@@ -82,7 +82,12 @@ export const Navbar = () => {
               aria-expanded={open ? "true" : "false"}
               onClick={() => setOpen((prev: boolean) => !prev)}
             >
-              <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+              <svg
+                className="h-6 w-6"
+                stroke="currentColor"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
                 {open ? (
                   <path
                     strokeLinecap="round"

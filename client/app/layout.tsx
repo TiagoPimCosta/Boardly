@@ -14,8 +14,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Boardly",
-  description: "A modern Kanban board built for freelancers who work with multiple clients.",
+  title: {
+    template: "%s | Boardly",
+    default: "Boardly",
+  },
+  description:
+    "A modern Kanban board built for freelancers who work with multiple clients.",
+  icons: {
+    icon: "/logo1200.png",
+  },
 };
 
 export default function RootLayout({
@@ -25,7 +32,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <QueryProvider>{children}</QueryProvider>
       </body>
     </html>

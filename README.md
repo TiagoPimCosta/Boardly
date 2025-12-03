@@ -20,7 +20,7 @@ Freelancers often juggle several projects at once, but most project management t
 
 ### 🔐 Authentication & Roles
 
-- [ ] Implement sign-up and login (email + password or Google OAuth)
+- [x] Implement sign-up and login (email + password or Google OAuth)
 - [ ] Create **Freelancer** and **Client** roles
 - [ ] Allow freelancers to invite clients via email (token or link)
 - [ ] Protect all routes with JWT or session-based authentication
