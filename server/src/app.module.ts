@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { User } from './user/entities/user.entity';
     }),
     AuthModule,
     UserModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
