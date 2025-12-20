@@ -116,3 +116,78 @@ Freelancers often juggle several projects at once, but most project management t
 - [ ] Stripe subscriptions for freelancers
 - [ ] AI project summaries / progress reports
 - [ ] Integrations (Google Calendar, Slack, GitHub)
+
+## DB Diagram
+
+```mermaid
+erDiagram
+
+USERS_ROLES {
+    uuid id PK
+    string name
+}
+
+USERS {
+    uuid id PK
+    string email
+    string password
+    string name
+    bool active
+    timestamp created_at
+    uuid role FK
+}
+
+BOARDS {
+    uuid id PK
+    string name
+    timestamp created_at
+    uuid owner_id FK
+}
+
+COLUMNS {
+    uuid id PK
+    string name
+    int position
+    uuid board_id FK
+}
+
+PROJECTS {
+    uuid id PK
+    string name
+    string color
+    timestamp created_at
+    uuid board_id FK
+}
+
+USER_PROJECT_PERMISSIONS {
+    uuid id PK
+    bool read
+    bool write
+    uuid project_id FK
+    uuid client_id FK
+}
+
+CARDS {
+    uuid id PK
+    string title
+    string description
+    int position
+    timestamp last_updated_at
+    timestamp created_at
+    uuid project_id FK
+    uuid column_id FK
+}
+
+USERS_ROLES ||--o{ USERS : has
+
+USERS ||--o{ USER_PROJECT_PERMISSIONS : has
+USERS ||--o{ BOARDS : owns
+
+BOARDS ||--o{ COLUMNS : contains
+BOARDS ||--o{ PROJECTS : groups
+
+PROJECTS ||--o{ USER_PROJECT_PERMISSIONS : has
+PROJECTS ||--o{ CARDS : contains
+
+COLUMNS ||--o{ CARDS : organizes
+```
