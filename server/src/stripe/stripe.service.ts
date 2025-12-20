@@ -144,9 +144,12 @@ export class StripeService {
 
     // 2. Fetch features for all products in parallel
     const productFeaturesMap = new Map<string, string[]>();
-    const featurePromises = productsData.data.map(async (product) => {
-      const features = await this.fetchProductFeatures(product.id);
-      productFeaturesMap.set(product.id, features);
+    const uniqueProductIds = Array.from(
+      new Set(productsData.data.map((product) => product.id)),
+    );
+    const featurePromises = uniqueProductIds.map(async (productId) => {
+      const features = await this.fetchProductFeatures(productId);
+      productFeaturesMap.set(productId, features);
     });
     await Promise.all(featurePromises);
 
