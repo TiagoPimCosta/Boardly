@@ -4,15 +4,15 @@ import { JwtService } from '@nestjs/jwt';
 import refreshJwtConfig from './config/refreshJwt.config';
 import type { ConfigType } from '@nestjs/config';
 import accessJwtConfig from './config/accessJwt.config';
-import { UserService } from 'src/user/user.service';
-import { User } from 'src/user/entities/user.entity';
+import { UsersService } from 'src/users/users.service';
+import { User } from 'src/users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
-    private userService: UserService,
+    private userService: UsersService,
     @Inject(refreshJwtConfig.KEY)
     private refreshTokenConfig: ConfigType<typeof refreshJwtConfig>,
     @Inject(accessJwtConfig.KEY)

@@ -4,9 +4,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserModule } from './user/user.module';
-import { User } from './user/entities/user.entity';
+import { UsersModule } from './users/users.module';
+import { User } from './users/entities/user.entity';
 import { StripeModule } from './stripe/stripe.module';
+import { UserRolesModule } from './user_roles/user_roles.module';
 
 @Module({
   imports: [
@@ -25,8 +26,9 @@ import { StripeModule } from './stripe/stripe.module';
       logging: true,
     }),
     AuthModule,
-    UserModule,
+    UsersModule,
     StripeModule,
+    UserRolesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
